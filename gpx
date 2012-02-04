@@ -1,0 +1,85 @@
+#!/bin/bash
+# usage: $0 cmd [cmd-options]
+
+function help() {
+cat <<TAC
+Operates your Skytraq GPS logger stick. Requires gpsbabel.
+Info: http://www.petrilopia.net/wordpress/hardware/ventus-gps-route-logger-g730-linux/
+
+Usage: $0 cmd [cmd-options]
+
+	load [out.gpx] [split] download tracks and waypoints [to stdout]
+	                       split: set splitting interval [1h]
+	erase                  erase everything from the stick!
+	simpl [err] [in] [out] simplify tracks to [2m] (for Google Maps)
+	                       err: points or max error with unit k or m
+	                       note: this inevitably shortens the route length?
+	disc [max] [in] [out]  discard points if elevation outside 0…max [100m]
+
+Whenever in or out is missing, stdin/stdout is used.
+File format is derived from extension, default is gpx.
+TAC
+}
+
+# quit error-message
+function quit() {
+	echo "$@" >&2
+	exit 1
+}
+
+# gpsb filter [in] [out]
+function gpsb() {
+	filter=$1
+
+	# default to stdin/stdout
+	in=${2:--}
+	out=${3:--}
+
+	[ "$2" ] && inf=${2##*.} || inf=gpx
+	[ "$3" ] && outf=${3##*.} || outf=gpx
+	
+	gpsbabel -i $inf -f $in -x $filter -o $outf -F $out
+}
+
+dev=/dev/cu.usbserial
+cmd=$1
+shift
+
+case $cmd in
+"") help ;;
+
+load | dl)
+	out=${1:--}
+	[ "$1" ] && outf=${1##*.} || outf=gpx
+	split=${2:-1h}
+
+	gpsbabel -i skytraq -f $dev -x track,split=$split -o $outf -F $out
+	;;
+
+erase)
+	gpsbabel -i skytraq,erase,no-out -f $dev
+	;;
+
+simpl)
+	error=${1:-2m}
+	# in=${2:--}
+	# out=${3:--}
+	# [ "$out" ] || quit Usage: simpl [error=2m] [in.gpx] [out.gpx] 
+
+	# check if there's a non-numeric unit postfix (k or m)
+	[[ ${error: -1} =~ [0-9] ]] && mode=count || mode=error
+
+	gpsb simplify,$mode=$error $2 $3
+	;;
+
+disc)
+	# TODO: allow format min-max
+	min=0
+	max=${1:-100}
+
+	gpsb discard,elemin=$min,elemax=$max $2 $3
+	;;
+
+*)	echo Don\'t know what to do with $cmd.
+	;;
+esac

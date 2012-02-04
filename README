@@ -1,0 +1,16 @@
+Operates your Skytraq GPS logger stick. Requires gpsbabel. Run "gpx" for usage.
+Useful for simplifying the routes so that Google Maps doesn't split them.
+
+I have Ventus GPS Route Logger G730. Some info (for linux) here:
+http://www.petrilopia.net/wordpress/hardware/ventus-gps-route-logger-g730-linux/
+
+"Installation guide" for OS X:
+
+1. Install bundled software, this installs the required PL2303 USB-serial driver.
+Or, maybe get the driver from Profilic: www.prolific.com.tw/eng/downloads.asp?id=31
+
+2. Install gpsbabel. Available from homebrew or gpsbabel homepage.
+http://www.gpsbabel.org/
+
+Done! Now some skiing on the sea!
+http://maps.google.fi/maps/ms?msid=200811479630740617270.0004b6dfef0fc30a11f49&msa=0
