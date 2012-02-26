@@ -14,7 +14,8 @@ Usage: $0 cmd [cmd-options]
 	simpl [err] [in] [out] simplify tracks to [2m] (for Google Maps)
 	                       err: points or max error with unit k or m
 	                       note: this inevitably shortens the route length?
-	disc [max] [in] [out]  discard points if elevation outside 0…max [100m]
+	disc [[min..]max] [i] [o] discard points if elevation outside min…max
+	                          if min or max not given, defaults to 0…100m
 
 Whenever in or out is missing, stdin/stdout is used.
 File format is derived from extension, default is gpx.
@@ -73,9 +74,18 @@ simpl)
 	;;
 
 disc)
-	# TODO: allow format min-max
-	min=0
-	max=${1:-100}
+	# format: [[-min..]max], eg. -20..40 (meters)
+	[ "$1" ] && {
+		min=${1%..*}
+		max=${1#*..}
+		# if only max is specified, fallback min to default
+		# NOTE: why is this regex match correct _without_ escaping dots? "\.\." does NOT work
+		[[ "$1" =~ ".." ]] || min=
+	}
+
+	# assign defaults if empty
+	: ${min:=0}
+	: ${max:=100}
 
 	gpsb discard,elemin=$min,elemax=$max $2 $3
 	;;
