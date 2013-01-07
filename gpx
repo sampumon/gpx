@@ -1,6 +1,10 @@
 #!/bin/bash
 # usage: $0 cmd [cmd-options]
 
+# HERE IS YOUR CONFIGURATION THANKYOU
+dev=/dev/cu.usbserial
+intype=skytraq
+
 function help() {
 cat <<TAC
 Operates your Skytraq GPS logger stick. Requires gpsbabel.
@@ -42,7 +46,7 @@ function gpsb() {
 	gpsbabel -i $inf -f $in -x $filter -o $outf -F $out
 }
 
-dev=/dev/cu.usbserial
+# BEGIN PROCESSING STUFF
 cmd=$1
 shift
 
@@ -54,11 +58,11 @@ load | dl)
 	[ "$1" ] && outf=${1##*.} || outf=gpx
 	split=${2:-1h}
 
-	gpsbabel -i skytraq -f $dev -x track,split=$split -o $outf -F $out
+	gpsbabel -i $intype -f $dev -x track,split=$split -o $outf -F $out
 	;;
 
 erase)
-	gpsbabel -i skytraq,erase,no-out -f $dev
+	gpsbabel -i $intype,erase,no-out -f $dev
 	;;
 
 simpl)
